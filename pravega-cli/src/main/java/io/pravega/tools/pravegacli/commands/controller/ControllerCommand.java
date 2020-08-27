@@ -43,8 +43,6 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 public abstract class ControllerCommand extends Command {
     static final String COMPONENT = "controller";
 
-    private static final String truststore_path = "./conf/client.truststore.jks";
-
     /**
      * Creates a new instance of the Command class.
      *
@@ -64,22 +62,28 @@ public abstract class ControllerCommand extends Command {
         clientConfig.register(JacksonJsonProvider.class);
         clientConfig.property("sun.net.http.allowRestrictedHeaders", "true");
 
-        KeyStore ks = null;
-        try {
-            ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream(new File(truststore_path)), null);
-        } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
-            e.printStackTrace();
+        Client client;
+
+        // If tls parameters are configured, set them in client
+        if (getCLIControllerConfig().isTlsEnabled()) {
+            KeyStore ks = null;
+            try {
+                ks = KeyStore.getInstance("JKS");
+                ks.load(new FileInputStream(new File(getCLIControllerConfig().getTruststore())), null);
+            } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
+                e.printStackTrace();
+            }
+
+            HostnameVerifier controllerHostnameVerifier = new ControllerHostnameVerifier();
+            client = ClientBuilder.newBuilder()
+                    .withConfig(clientConfig)
+                    .trustStore(ks)
+                    .hostnameVerifier(controllerHostnameVerifier)
+                    .build();
+        } else {
+            client = ClientBuilder.newClient(clientConfig);
         }
 
-        HostnameVerifier controllerHostnameVerifier = new ControllerHostnameVerifier();
-        Client client = ClientBuilder.newBuilder()
-                .withConfig(clientConfig)
-                .trustStore(ks)
-                .hostnameVerifier(controllerHostnameVerifier)
-                .build();
-
-//        Client client = ClientBuilder.newClient(clientConfig);
         // If authorization parameters are configured, set them in the client.
         if (getCLIControllerConfig().isAuthEnabled()) {
             HttpAuthenticationFeature auth = HttpAuthenticationFeature.basic(getCLIControllerConfig().getUserName(),
