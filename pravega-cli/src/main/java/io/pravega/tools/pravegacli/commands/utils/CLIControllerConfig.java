@@ -24,9 +24,6 @@ public final class CLIControllerConfig {
         SEGMENTSTORE, ZOOKEEPER
     }
 
-//    private static final Property<String> CONTROLLER_REST_URI = Property.named("controllerRestUri", "http://localhost:9091");
-//    private static final Property<String> CONTROLLER_GRPC_URI = Property.named("controllerGrpcUri", "tcp://localhost:9090");
-
     private static final Property<String> CONTROLLER_REST_URI = Property.named("controllerRestUri", "localhost:9091");
     private static final Property<String> CONTROLLER_GRPC_URI = Property.named("controllerGrpcUri", "localhost:9090");
 

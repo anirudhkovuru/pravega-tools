@@ -37,9 +37,11 @@ public class ControllerCommandsTest {
         SETUP_UTILS.startAllServices();
         STATE.set(new AdminCommandState());
         Properties pravegaProperties = new Properties();
-        pravegaProperties.setProperty("cli.controllerRestUri", SETUP_UTILS.getControllerRestUri().toString());
+        pravegaProperties.setProperty("cli.controllerRestUri", SETUP_UTILS.getControllerRestUri().toString().substring(7));
         pravegaProperties.setProperty("pravegaservice.zkURL", "localhost:2181");
         pravegaProperties.setProperty("pravegaservice.containerCount", "4");
+        pravegaProperties.setProperty("cli.authEnabled", "false");
+        pravegaProperties.setProperty("cli.tlsEnabled", "false");
         STATE.get().getConfigBuilder().include(pravegaProperties);
     }
 
