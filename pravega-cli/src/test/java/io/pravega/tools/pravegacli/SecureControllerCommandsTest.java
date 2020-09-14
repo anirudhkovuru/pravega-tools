@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Dell Inc., or its subsidiaries. All Rights Reserved.
+ * Copyright (c) Dell Inc., or its subsidiaries. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,10 @@ import static org.junit.Assert.assertTrue;
 @Slf4j
 public class SecureControllerCommandsTest {
     // Security related flags and instantiate local pravega server.
-    private static final boolean restEnabled = true;
-    private static final boolean authEnabled = true;
-    private static final boolean tlsEnabled = true;
-    private static final Integer restServerPort = 9091;
+    private static final boolean REST_ENABLED = true;
+    private static final boolean AUTH_ENABLED = true;
+    private static final boolean TLS_ENABLED = true;
+    private static final Integer REST_SERVER_PORT = 9091;
     private static LocalPravegaEmulator localPravega;
     private static final AtomicReference<AdminCommandState> STATE = new AtomicReference<>();
 
@@ -50,22 +50,22 @@ public class SecureControllerCommandsTest {
                 .segmentStorePort(io.pravega.test.common.TestUtils.getAvailableListenPort())
                 .zkPort(io.pravega.test.common.TestUtils.getAvailableListenPort())
                 .restServerPort(io.pravega.test.common.TestUtils.getAvailableListenPort())
-                .enableRestServer(restEnabled)
-                .enableAuth(authEnabled)
-                .enableTls(tlsEnabled)
-                .restServerPort(restServerPort);
+                .enableRestServer(REST_ENABLED)
+                .enableAuth(AUTH_ENABLED)
+                .enableTls(TLS_ENABLED)
+                .restServerPort(REST_SERVER_PORT);
 
         // Since the server is being built right here, avoiding delegating these conditions to subclasses via factory
         // methods. This is so that it is easy to see the difference in server configs all in one place. This is also
         // unlike the ClientConfig preparation which is being delegated to factory methods to make their preparation
         // explicit in the respective test classes.
 
-        if (authEnabled) {
+        if (AUTH_ENABLED) {
             emulatorBuilder.passwdFile("src/test/resources/passwd")
                     .userName(SecurityConfigDefaults.AUTH_ADMIN_USERNAME)
                     .passwd(SecurityConfigDefaults.AUTH_ADMIN_PASSWORD);
         }
-        if (tlsEnabled) {
+        if (TLS_ENABLED) {
             emulatorBuilder.certFile("src/test/resources/server-cert.crt")
                     .keyFile("src/test/resources/server-key.key")
                     .jksKeyFile("src/test/resources/server.keystore.jks")
@@ -78,15 +78,19 @@ public class SecureControllerCommandsTest {
         // Set the CLI properties.
         STATE.set(new AdminCommandState());
         Properties pravegaProperties = new Properties();
-        pravegaProperties.setProperty("cli.controllerRestUri", "localhost:" + restServerPort.toString());
-        pravegaProperties.setProperty("pravegaservice.zkURL", localPravega.getInProcPravegaCluster().getZkUrl());
-        pravegaProperties.setProperty("pravegaservice.containerCount", "4");
-        pravegaProperties.setProperty("cli.authEnabled", "true");
-        pravegaProperties.setProperty("cli.tlsEnabled", "true");
-        pravegaProperties.setProperty("cli.userName", "admin");
-        pravegaProperties.setProperty("cli.password", "1111_aaaa");
+        pravegaProperties.setProperty("cli.controller.rest.uri", "localhost:" + REST_SERVER_PORT.toString());
+        pravegaProperties.setProperty("pravegaservice.zk.connect.uri", localPravega.getInProcPravegaCluster().getZkUrl());
+        pravegaProperties.setProperty("pravegaservice.container.count", "4");
+        pravegaProperties.setProperty("cli.security.auth.enable", "true");
+        pravegaProperties.setProperty("cli.security.tls.enable", "true");
+        pravegaProperties.setProperty("cli.security.auth.credentials.username", "admin");
+        pravegaProperties.setProperty("cli.security.auth.credentials.password", "1111_aaaa");
         pravegaProperties.setProperty("cli.security.tls.trustStore.location", "src/test/resources/client.truststore.jks");
         STATE.get().getConfigBuilder().include(pravegaProperties);
+
+        localPravega.start();
+        // Wait for the server to complete start-up.
+        TimeUnit.SECONDS.sleep(20);
     }
 
     ClientConfig prepareValidClientConfig() {
@@ -112,19 +116,12 @@ public class SecureControllerCommandsTest {
 
     @Test
     public void testListScopesCommand() throws Exception {
-        localPravega.start();
-        TimeUnit.SECONDS.sleep(20);
-
         String commandResult = TestUtils.executeCommand("controller list-scopes", STATE.get());
         Assert.assertTrue(commandResult.contains("_system"));
     }
 
     @Test
     public void testListStreamsCommand() throws Exception {
-        localPravega.start();
-        // Wait for the server to complete start-up.
-        TimeUnit.SECONDS.sleep(20);
-
         String scope = "testScope";
         String testStream = "testStream";
         ClientConfig clientConfig = prepareValidClientConfig();
@@ -150,20 +147,12 @@ public class SecureControllerCommandsTest {
 
     @Test
     public void testListReaderGroupsCommand() throws Exception {
-        localPravega.start();
-        // Wait for the server to complete start-up.
-        TimeUnit.SECONDS.sleep(20);
-
         String commandResult = TestUtils.executeCommand("controller list-readergroups _system", STATE.get());
         Assert.assertTrue(commandResult.contains("commitStreamReaders"));
     }
 
     @Test
     public void testDescribeScopeCommand() throws Exception {
-        localPravega.start();
-        // Wait for the server to complete start-up.
-        TimeUnit.SECONDS.sleep(20);
-
         String commandResult = TestUtils.executeCommand("controller describe-scope _system", STATE.get());
         Assert.assertTrue(commandResult.contains("_system"));
     }

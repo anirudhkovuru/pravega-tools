@@ -58,18 +58,18 @@ You will se an output related to the default configuration parameters available 
 Pravega CLI.
 
 Initial configuration:
-	cli.tlsEnabled=false
-	cli.controllerRestUri=localhost:9091
-	cli.authEnabled=false
-	bookkeeper.bkLedgerPath=/pravega/pravega/bookkeeper/ledgers
-	cli.security.tls.trustStore.location=./conf/client.truststore.jks
-	pravegaservice.zkURL=localhost:4000
-	pravegaservice.clusterName=pravega
-	cli.metadataBackend=segmentstore
-	cli.controllerGrpcUri=localhost:9090
-	cli.userName=admin
-	cli.password=1111_aaaa
-	pravegaservice.containerCount=4
+	pravegaservice.container.count=4
+	cli.security.tls.enable=true
+	bookkeeper.ledger.path=/pravega/pravega/bookkeeper/ledgers
+	cli.security.auth.enable=true
+	cli.security.auth.credentials.password=1111_aaaa
+	pravegaservice.cluster.name=pravega
+	cli.security.tls.trustStore.location=./conf/controller01.server.jks
+	cli.store.metadata.backend=zookeeper
+	cli.controller.rest.uri=10.243.39.151:10080
+	cli.security.auth.credentials.username=admin
+	pravegaservice.zk.connect.uri=zookeeper-client:2181
+	cli.controller.grpc.uri=10.243.39.151:9090
 ```
 From that point onwards, you can check the available commands typing `help`:
 ``` 

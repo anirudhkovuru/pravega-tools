@@ -37,11 +37,16 @@ public class ControllerCommandsTest {
         SETUP_UTILS.startAllServices();
         STATE.set(new AdminCommandState());
         Properties pravegaProperties = new Properties();
-        pravegaProperties.setProperty("cli.controllerRestUri", SETUP_UTILS.getControllerRestUri().toString().substring(7));
-        pravegaProperties.setProperty("pravegaservice.zkURL", "localhost:2181");
-        pravegaProperties.setProperty("pravegaservice.containerCount", "4");
-        pravegaProperties.setProperty("cli.authEnabled", "false");
-        pravegaProperties.setProperty("cli.tlsEnabled", "false");
+
+        // The uri returned by SETUP_UTILS is in the form http://localhost:9091 (protocol + domain + port)
+        // but for the CLI we need to set the REST uri as localhost:9091 (domain + port). Because the protocol
+        // is decided based on whether security is enabled or not.
+
+        pravegaProperties.setProperty("cli.controller.rest.uri", SETUP_UTILS.getControllerRestUri().toString().substring(7));
+        pravegaProperties.setProperty("pravegaservice.zk.connect.uri", "localhost:2181");
+        pravegaProperties.setProperty("pravegaservice.container.count", "4");
+        pravegaProperties.setProperty("cli.security.auth.enable", "false");
+        pravegaProperties.setProperty("cli.security.tls.enable", "false");
         STATE.get().getConfigBuilder().include(pravegaProperties);
     }
 
